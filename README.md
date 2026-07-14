@@ -1,4 +1,4 @@
-# Quantum kernel Machine Learning for Few‑Shot XRD Phase Classification in High‑Entropy Oxides
+# Quantum kernel Machine Learning for XRD Phase Classification in High‑Entropy Oxides
 
 Code and data for reproducing all results in the manuscript. The pipeline follows the quantum kernel machine learning methodology of Adams et al. (2026) and applies it to a high-entropy oxide XRD dataset.
 
