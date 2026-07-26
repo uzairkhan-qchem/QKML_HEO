@@ -7,3 +7,4 @@ venv_clean/
 venv_clean/
 __pycache__/
 .DS_Store
+venv_clean/
