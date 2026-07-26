@@ -1,9 +1,12 @@
 # compute_classical_kernels.py
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
+
 import numpy as np
 import kernels
 
 # ---------- 1. Load data ----------
-d = np.load("heo_binary_data.npz", allow_pickle=True)
+d = np.load(os.path.join("data", "processed", "heo_binary_data.npz"), allow_pickle=True)
 X_classical = d["xrd_classical"]     # L2‑normalised – for classical kernels
 labels_str  = d["labels"]
 
@@ -37,7 +40,7 @@ for ell in lengthscales:
     print(f"  Gaussian RBF (ℓ={ell:.2f}) computed")
 
 # ---------- 5. Save all matrices ----------
-np.savez("heo_classical_kernels_32.npz",
+np.savez(os.path.join("data", "processed", "heo_classical_kernels_32.npz"),
          K_cos=K_cos, K_arbf=K_arbf, K_crbf=K_crbf, K_cde=K_cde,
          K_gauss_0p5=K_gauss[0.5],
          K_gauss_0p75=K_gauss[0.75],

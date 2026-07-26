@@ -1,8 +1,10 @@
-# prepare_heo_binary_data_v2.py
+# prepare_heo_binary_data_v2.py  (path‑fixed)
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
+
 import pandas as pd
 import numpy as np
 import re
-import os
 
 # ---------- 1. identify sample indices ----------
 df = pd.read_csv(
@@ -71,7 +73,7 @@ x_min, x_max = np.min(X_quantum), np.max(X_quantum)
 X_quantum = np.pi * (X_quantum - x_min) / (x_max - x_min)
 
 # ---------- 6. save ----------
-np.savez("heo_binary_data.npz",
+np.savez(os.path.join("data", "processed", "heo_binary_data.npz"),
          xrd_classical=X_classical,
          xrd_quantum=X_quantum,
          labels=labels,

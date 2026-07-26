@@ -1,6 +1,8 @@
 # evaluate_heo_kernel_32_v2.py
 import json
 import numpy as np
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
 from feature_map import PetersFeatureMap
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit.primitives import BackendSampler
@@ -8,7 +10,7 @@ from qiskit.algorithms.state_fidelities import ComputeUncompute
 from qiskit_ionq import IonQProvider
 
 # ---------- Load prepared HEO data ----------
-data = np.load("heo_binary_data.npz", allow_pickle=True)
+data = np.load(os.path.join("data", "processed", "heo_binary_data.npz"), allow_pickle=True)
 xrd_quantum = data["xrd_quantum"]       # <-- quantum preprocessing
 labels = data["labels"]
 indices = data["selected_indices"]
@@ -54,7 +56,7 @@ output_data = {
     "selected_indices": indices.tolist()
 }
 
-output_path = "heo_quantum_kernel_32.json"
+output_path = os.path.join("data", "processed", "heo_quantum_kernel_32.json")
 with open(output_path, "w") as f:
     json.dump(output_data, f)
 

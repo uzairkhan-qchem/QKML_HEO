@@ -1,11 +1,14 @@
-# compute_metrics_32.py  (final, robust version)
+# compute_metrics_32.py  (final, robust version – path‑fixed)
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
+
 import json
 import numpy as np
 from ast import literal_eval
 import metrics
 
 # ---------- 1. Load quantum kernel ----------
-with open("heo_quantum_kernel_32.json") as f:
+with open(os.path.join("data", "processed", "heo_quantum_kernel_32.json")) as f:
     qdata = json.load(f)
 
 n_q = len(qdata["xrd_data"]["xrd"])
@@ -20,7 +23,7 @@ K_q += jitter * np.eye(n_q)
 print(f"Quantum kernel loaded: shape {K_q.shape}")
 
 # ---------- 2. Load classical kernels and labels ----------
-cl = np.load("heo_classical_kernels_32.npz", allow_pickle=True)
+cl = np.load(os.path.join("data", "processed", "heo_classical_kernels_32.npz"), allow_pickle=True)
 labels_str = cl["labels_str"]
 y_true = np.array([0 if l == "Fm-3m" else 1 for l in labels_str])
 

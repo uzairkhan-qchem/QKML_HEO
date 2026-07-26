@@ -1,17 +1,20 @@
-# run_gp_multi_seed_32.py  (corrected – shared splits, nan‑safe)
+# run_gp_multi_seed_32.py  (corrected – shared splits, nan‑safe, path‑fixed)
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
+
 import json, numpy as np, gpflow, kernels
 from ast import literal_eval
 from scipy.stats import norm, wilcoxon
 from tqdm import tqdm
 
 # ---------- Load labels ----------
-data = np.load("heo_binary_data.npz", allow_pickle=True)
+data = np.load(os.path.join("data", "processed", "heo_binary_data.npz"), allow_pickle=True)
 labels_str = data["labels"]
 y_true = np.array([0 if l == "Fm-3m" else 1 for l in labels_str])
 N_total = len(y_true)
 
 # ---------- Quantum kernel ----------
-with open("heo_quantum_kernel_32.json") as f:
+with open(os.path.join("data", "processed", "heo_quantum_kernel_32.json")) as f:
     qdata = json.load(f)
 K_q = np.ones((N_total, N_total))
 for key, val in qdata["kernel_entries"].items():
@@ -21,7 +24,7 @@ for key, val in qdata["kernel_entries"].items():
 K_q += 1e-6 * np.eye(N_total)
 
 # ---------- Classical kernels ----------
-cl = np.load("heo_classical_kernels_32.npz", allow_pickle=True)
+cl = np.load(os.path.join("data", "processed", "heo_classical_kernels_32.npz"), allow_pickle=True)
 kernels_to_test = [
     ("Quantum (sim.)",         K_q),
     ("Angular RBF",            cl["K_arbf"]),
@@ -44,7 +47,6 @@ train_sizes = list(range(5, 32))
 n_repeats = 25
 
 # ---------- Precompute all splits once ----------
-# splits[seed][ts][rep] = (train_idx, test_idx)
 splits = {}
 for seed in seeds:
     np.random.seed(seed)
@@ -57,7 +59,7 @@ for seed in seeds:
 
 # ---------- Evaluate each kernel on the same splits ----------
 all_acc = {name: {s: {} for s in seeds} for name, _ in kernels_to_test}
-error_log = []      # <-- new: collects any fitting exceptions
+error_log = []
 
 for name, K_full in tqdm(kernels_to_test, desc="Kernel"):
     for seed in tqdm(seeds, desc=" Seed", leave=False):
@@ -69,17 +71,15 @@ for name, K_full in tqdm(kernels_to_test, desc="Kernel"):
                     preds = fit_and_predict(K_full, train_idx, test_idx, y_train)
                     accs.append(np.mean(preds == y_true[test_idx]))
                 except Exception as e:
-                    # Log the exception and store NaN instead of 0.0
                     error_log.append({
                         "kernel": name,
                         "seed": seed,
                         "train_size": ts,
                         "error": repr(e)
                     })
-                    accs.append(np.nan)          # <-- NaN replaces 0.0
+                    accs.append(np.nan)
             all_acc[name][seed][ts] = accs
 
-# ---------- Report any fitting failures ----------
 if error_log:
     print(f"WARNING: {len(error_log)} GP fitting failure(s) occurred:")
     for err in error_log:
@@ -93,7 +93,6 @@ for name, _ in kernels_to_test:
     pooled[name] = {ts: [] for ts in train_sizes}
     for seed in seeds:
         for ts in train_sizes:
-            # Keep only finite accuracies when pooling
             valid = [v for v in all_acc[name][seed][ts] if not np.isnan(v)]
             pooled[name][ts].extend(valid)
 
@@ -116,7 +115,7 @@ for ts in train_sizes:
     r_g, lg, hg = katz_ratio_ci(acc_q, np.array(pooled["Gaussian RBF (l=1)"][ts]))
     print(f" {ts:2d} | {r_a:.3f} ({la:.3f},{ha:.3f})  | {r_c:.3f} ({lc:.3f},{hc:.3f})  | {r_g:.3f} ({lg:.3f},{hg:.3f})")
 
-# ---------- Wilcoxon pooled (NOW CORRECTLY PAIRED) ----------
+# ---------- Wilcoxon pooled ----------
 print("\nWilcoxon (pooled, 75 PAIRED splits):")
 print("Size | Angular RBF          | Cosine‑dist exp       | Gaussian RBF (l=1)")
 print("-"*75)
@@ -134,6 +133,6 @@ for ts in train_sizes:
     print(row)
 
 # Save corrected pooled data
-np.savez("heo_pooled_results_32.npz",
+np.savez(os.path.join("data", "processed", "heo_pooled_results_32.npz"),
          train_sizes=train_sizes, pooled=pooled)
 print("\nPooled results saved to heo_pooled_results_32.npz")

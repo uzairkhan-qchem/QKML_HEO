@@ -1,14 +1,15 @@
 # active_learning_both_policies.py  (CSV export, no matplotlib)
 import json, numpy as np, gpflow, kernels, csv
+import os
 from ast import literal_eval
 from tqdm import tqdm
 
 # ---------- 1. Load data and kernels ----------
-data = np.load("heo_binary_data.npz", allow_pickle=True)
+data = np.load(os.path.join("data","processed","heo_binary_data.npz"), allow_pickle=True)
 y_true = np.array([0 if l == "Fm-3m" else 1 for l in data["labels"]])
 N_total = len(y_true)
 
-with open("heo_quantum_kernel_32.json") as f:
+with open(os.path.join("data","processed","heo_quantum_kernel_32.json")) as f:
     qdata = json.load(f)
 K_q = np.ones((N_total, N_total))
 for key, val in qdata["kernel_entries"].items():
@@ -17,7 +18,7 @@ for key, val in qdata["kernel_entries"].items():
     K_q[i, j] = v; K_q[j, i] = v
 K_q += 1e-6 * np.eye(N_total)
 
-cl = np.load("heo_classical_kernels_32.npz", allow_pickle=True)
+cl = np.load(os.path.join("data","processed","heo_classical_kernels_32.npz"), allow_pickle=True)
 kernel_list = [
     ("Quantum (sim.)",         K_q),
     ("Angular RBF",            cl["K_arbf"]),
@@ -84,7 +85,7 @@ mean_rnd, std_rnd = run_active_learning(K_q, seeds,
 results[random_key] = (mean_rnd, std_rnd)
 
 # ---------- 4. Export CSV ----------
-with open("active_learning_data.csv", "w", newline="") as f:
+with open(os.path.join("data","processed","active_learning_data.csv"), "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["training_points", "kernel", "mean_accuracy",
                      "std_accuracy"])

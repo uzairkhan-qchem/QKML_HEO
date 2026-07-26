@@ -1,8 +1,11 @@
-# wilcoxon_significance.py  (corrected – uses the paired-split pooled file)
+# wilcoxon_significance.py  (corrected – uses the paired-split pooled file, path‑fixed)
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'modules'))
+
 import numpy as np
 from scipy.stats import wilcoxon
 
-data = np.load("heo_pooled_results_32.npz", allow_pickle=True)
+data = np.load(os.path.join("data", "processed", "heo_pooled_results_32.npz"), allow_pickle=True)
 pooled = data["pooled"].item()
 train_sizes = data["train_sizes"]
 
